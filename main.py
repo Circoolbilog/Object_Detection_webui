@@ -1,16 +1,52 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+import gradio as gr
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+# Function placeholders
+def visualizer():
+    pass
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+def parse():
+    pass
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+def create_values():
+    pass
+
+
+def create_tfrecord_shards():
+    pass
+
+
+# Create tabs for each function with buttons
+with gr.Blocks() as tabbed_interface:
+    with gr.Row():
+        cuda_directory = gr.File(
+            label="CUDA Directory(Use only when cuda is not detected navigate to where the cuda directory is)",
+            file_types=[".dll"], height=130)
+        training_data_directory = gr.File(label="Training Data Directory", file_count='directory')
+        validation_data_directory = gr.File(label="Validation Data Directory", file_count='directory')
+
+    with gr.Tab("Data Prep"):
+        visualize_button = gr.Button(value="Visualize" )
+        parse_button = gr.Button(value="Parse")
+        labels_text = gr.Textbox(label="values")
+
+        create_values_button = gr.Button(value="Create values")
+
+        labels_filename_text = gr.Textbox(label="values File Name")
+        create_tfrecord_shards_button = gr.Button(value="Create/Convert to TFRecord/Shards")
+
+    with gr.Tab("Training"):
+        gr.Button("Placeholder")
+
+    with gr.Tab("Testing"):
+        gr.Button("Placeholder")
+
+    with gr.Tab("Model"):
+        gr.Button("Placeholder")
+
+
+
+# Launch the tabbed interface
+tabbed_interface.launch()
