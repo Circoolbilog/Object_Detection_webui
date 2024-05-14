@@ -31,6 +31,8 @@ To get started with the Object Detection WebUI, follow these steps:
    ```
 
 2. Install dependencies:
+  install python 3.9
+  
    ```
    pip install -r requirements.txt
    ```
