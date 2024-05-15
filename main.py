@@ -17,6 +17,10 @@ def create_values():
 def create_tfrecord_shards():
     pass
 
+def train(num_train_steps):
+    print(num_train_steps)
+    return num_train_steps
+    pass
 
 # Create tabs for each function with buttons
 with gr.Blocks() as tabbed_interface:
@@ -38,10 +42,31 @@ with gr.Blocks() as tabbed_interface:
         create_tfrecord_shards_button = gr.Button(value="Create/Convert to TFRecord/Shards")
 
     with gr.Tab("Training"):
-        gr.Button("Placeholder")
+        with gr.Row():
+            model_dir = gr.File(label="Model Directory", file_count='directory')
+            config_file = gr.File(label="Pipeline config file", file_count='single', file_types=['.config'])
+
+        with gr.Row():
+            num_train_steps = gr.Slider(label='Number of training steps',
+                                        value=1000, minimum=500, maximum=50000,
+                                        step=500, info="how many steps should the training take",
+                                        interactive=True)
+            train_button = gr.Button(value='Start training')
+            train_output = gr.Textbox(label="Training Output")
+
+            # Link the button click to the train function
+            train_button.click(fn=train, inputs=num_train_steps, outputs=train_output)
+
+        output_graph = gr.File(label='Graph Output Directory', file_count='directory')
+        graph_button = gr.Button(value='Graph')
+        populate_button = gr.Button(value="Populate Metadata")
+
 
     with gr.Tab("Testing"):
-        gr.Button("Placeholder")
+        get_ground_truth = gr.Button(value="Get Ground Truth")
+        get_detections = gr.Button(value="Get Detections")
+        get_map = gr.Button(value="Calulate the mAP")
+
 
     with gr.Tab("Model"):
         gr.Button("Placeholder")
