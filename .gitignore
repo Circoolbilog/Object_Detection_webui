@@ -1,3 +1,4 @@
 env
 webui/venv
 venv
+all_generated/*

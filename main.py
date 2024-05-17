@@ -1,13 +1,34 @@
+import logging
+import os
+import shutil
 import gradio as gr
+from Datakit import convert, visualizer
+from webui import common_gui
+from webui.class_folders import Folders
+import argparse
 
 
-# Function placeholders
-def visualizer():
+css_path = "./assets/styles.css"
+def visualize():
+    train = training_data_directory.get_dir()
+    val = validation_data_directory.get_dir()
+
+    print(train)
+    print(val)
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    print(dir_path)
     pass
 
 
 def parse():
-    pass
+    train = training_data_directory.get_dir()
+    val = validation_data_directory.get_dir()
+    parsed_train_xml = convert.Converter(data_direct_directory=train,
+        data_set='Train.csv', all_gen_dir='all_generated')
+    parsed_train_xml.xml_write_to_csv()
+    parsed_val_xml = convert.Converter(data_direct_directory=val,
+        data_set='Val.csv', all_gen_dir='all_generated')
+    parsed_train_xml.xml_write_to_csv()
 
 
 def create_values():
@@ -23,17 +44,20 @@ def train(num_train_steps):
     pass
 
 # Create tabs for each function with buttons
-with gr.Blocks() as tabbed_interface:
+with gr.Blocks(title="Object Detection webui", css=css_path) as tabbed_interface:
+    with gr.Accordion("Cuda", open=False), gr.Group():
+        cuda_directory = Folders(dir_label="Cuda Directory",
+                              dir_hint="Use only when cuda is not detected navigate to where the cuda directory is")
     with gr.Row():
-        cuda_directory = gr.File(
-            label="CUDA Directory(Use only when cuda is not detected navigate to where the cuda directory is)",
-            file_types=[".dll"], height=130)
-        training_data_directory = gr.File(label="Training Data Directory", file_count='directory')
-        validation_data_directory = gr.File(label="Validation Data Directory", file_count='directory')
+        training_data_directory = Folders(dir_label="Training Data Directory", dir_hint='directory')
+        validation_data_directory = Folders(dir_label="Validation Data Directory", dir_hint='directory')
 
     with gr.Tab("Data Prep"):
-        visualize_button = gr.Button(value="Visualize" )
-        parse_button = gr.Button(value="Parse")
+        with gr.Row():
+            parse_button = gr.Button(value="Parse")
+            visualize_button = gr.Button(value="Visualize")
+            visualize_button.click(fn=visualize)
+            parse_button.click(fn=parse)
         labels_text = gr.Textbox(label="values")
 
         create_values_button = gr.Button(value="Create values")
@@ -52,10 +76,9 @@ with gr.Blocks() as tabbed_interface:
                                         step=500, info="how many steps should the training take",
                                         interactive=True)
             train_button = gr.Button(value='Start training')
-            train_output = gr.Textbox(label="Training Output")
 
             # Link the button click to the train function
-            train_button.click(fn=train, inputs=num_train_steps, outputs=train_output)
+            train_button.click(fn=train, inputs=num_train_steps, outputs=None)
 
         output_graph = gr.File(label='Graph Output Directory', file_count='directory')
         graph_button = gr.Button(value='Graph')
@@ -64,7 +87,7 @@ with gr.Blocks() as tabbed_interface:
 
     with gr.Tab("Testing"):
         get_ground_truth = gr.Button(value="Get Ground Truth")
-        get_detections = gr.Button(value="Get Detections")
+        get_detections = gr.Button(value="Get Detectios")
         get_map = gr.Button(value="Calulate the mAP")
 
 
