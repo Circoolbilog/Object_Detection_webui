@@ -60,9 +60,9 @@ class Visualizer:
 
         #combine dataFrame train
         for n in train_df['Symptoms'].values.tolist():
-            train_vs_val_df.loc[n]['Train']=train_df.loc[n]['Frequency']
+            train_vs_val_df.loc[n]['Train']=train_df.loc[n,'Frequency']
         for m in val_df['Symptoms'].values.tolist():
-            train_vs_val_df.loc[m]['Val'] = val_df.loc[m]['Frequency']
+            train_vs_val_df.loc[m]['Val'] = val_df.loc[m, 'Frequency']
 
         train_vs_val_df = train_vs_val_df.reset_index()
         print(train_vs_val_df)
@@ -82,11 +82,11 @@ class Visualizer:
         p= figure(x_range=idx)
         # train
         p.circle(x='index', y='Train',
-                 source=src, size=6, legend='Train Annotations')
+                 source=src, size=6, legend_label='Train Annotations')
         p.line(x='index', y='Train', source=src,  line_width=1)
         #val
         p.circle(x='index', y='Val',
-                 source=src, size=6, color='red', legend='Val Annotations')
+                 source=src, size=6, color='red', legend_label='Val Annotations')
         p.line(x='index', y='Val', source=src, color='red', line_width=1)
 
         p.title.text = 'Annotation Frequency of Abaca Viral Disease Symptoms'

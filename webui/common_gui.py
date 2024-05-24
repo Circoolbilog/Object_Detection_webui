@@ -43,7 +43,7 @@ def get_folder_path(folder_path: str = "") -> str:
         root = Tk()
         root.withdraw()
         root.wm_attributes("-topmost", 1)
-        selected_folder = filedialog.askdirectory(initialdir=folder_path or ".")
+        selected_folder = filedialog.askdirectory()
         root.destroy()
         return selected_folder or folder_path
     except Exception as e:

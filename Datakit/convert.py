@@ -22,9 +22,9 @@ class Parser:
             found="Found FILES: \n"
     ):
 
+        self.data_direct_directory=data_direct_directory
         self.base_directory = base_directory
         self.data_rel_directory = data_rel_directory
-        self.data_direct_directory = data_direct_directory
         self.data_set = data_set
         self.all_gen_dir = all_gen_dir
         self.mkdir = mkdir
@@ -38,7 +38,6 @@ class Parser:
         # file_location = '{}/{}'.format(self.base_directory, self.data_rel_directory)
         # file_location = os.path.join(self.base_directory, self.data_rel_directory)
         file_location = self.data_direct_directory
-
         list_all_files = glob.glob('{}/*.xml'.format(file_location))
         # list_all_files = glob.glob('{}\\*.xml'.format(file_location))
 

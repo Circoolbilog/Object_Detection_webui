@@ -1,4 +1,7 @@
 env
+env2
 webui/venv
 venv
 all_generated/*
+models-master
+conda_env
