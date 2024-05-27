@@ -4,6 +4,7 @@ from webui.class_folders import Folders
 from od_model.train_model_tf2 import Config, run_model
 from od_model.graph import export_tflite_graph
 from od_model.check_quantization import check_quantization, convert_to_quantized_tflite
+from od_model.populate_metadata import add_metadata
 
 css_path = "./assets/styles.css"
 
@@ -68,9 +69,16 @@ def train(num_steps):
 def check_model_quantization(model):
     return check_quantization(model)
 
+
 def quantize(quantization_method):
     model = model_to_quantize_model_dir.get_dir()
     return convert_to_quantized_tflite(model, quantization_method)
+
+
+def populate_metadata(label, model):
+    labelmap = f"all_generated/{label}"
+    add_metadata(model, labelmap)
+
 
 # Create tabs for each function with buttons
 with gr.Blocks(title="Object Detection webui", css=css_path) as tabbed_interface:
@@ -81,6 +89,7 @@ with gr.Blocks(title="Object Detection webui", css=css_path) as tabbed_interface
         training_data_directory = Folders(dir_label="Training Data Directory", dir_hint='directory')
         validation_data_directory = Folders(dir_label="Validation Data Directory", dir_hint='directory')
     val = validation_data_directory.get_dir()
+    labels_text = gr.Textbox(label="Label name", placeholder="name of your labels.txt and pbtxt file")
 
     with gr.Tab("Data Prep"):
         with gr.Row():
@@ -91,7 +100,6 @@ with gr.Blocks(title="Object Detection webui", css=css_path) as tabbed_interface
         with gr.Row():
             val_shards = gr.Number(label="Val Shards", scale=1, value=1, minimum=1, maximum=10, interactive=True)
             train_shards = gr.Number(label="Train Shards", scale=1, value=3, minimum=1, maximum=10, interactive=True)
-            labels_text = gr.Textbox(label="values", scale=8)
 
         create_values_button = gr.Button(value="Create values")
         create_tfrecord_shards_button = gr.Button(value="Create/Convert to TFRecord/Shards")
@@ -118,7 +126,7 @@ with gr.Blocks(title="Object Detection webui", css=css_path) as tabbed_interface
         graph_button = gr.Button(value='Graph')
         graph_button.click(fn=graph)
         populate_button = gr.Button(value="Populate Metadata")
-        populate_button.click()
+        # populate_button.click(fn=populate_metadata, inputs=[labels_text, model_dir])
 
     with gr.Tab("Testing"):
         get_ground_truth = gr.Button(value="Get Ground Truth")
@@ -135,11 +143,14 @@ with gr.Blocks(title="Object Detection webui", css=css_path) as tabbed_interface
         with gr.Row():
             with gr.Column():
                 model_to_quantize_model_dir = Folders(dir_label="Model dir", dir_hint='Model')
-                quantization_method = gr.Dropdown(label="Quantization Method", choices=["dynamic_range", "full_integer", "float16"],
+                quantization_method = gr.Dropdown(label="Quantization Method",
+                                                  choices=["dynamic_range", "full_integer", "float16"],
                                                   value="dynamic_range", interactive=True)
             model_output = gr.File(label="Quantized Model")
         quantize_model_button = gr.Button(value="Quantize Model")
         quantize_model_button.click(fn=quantize, outputs=model_output, inputs=quantization_method)
+        populate_button2 = gr.Button(value="Populate Metadata")
+        populate_button2.click(fn=populate_metadata, inputs=[labels_text, model_output])
 
 # Launch the tabbed interface
 tabbed_interface.launch()

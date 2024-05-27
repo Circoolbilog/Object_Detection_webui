@@ -16,17 +16,11 @@ def check_quantization(model_path):
 
 
 def convert_to_quantized_tflite(model_path, quantization_method):
-    # Convert the tflite model to a quantized tflite model
-    model = tf.saved_model.load(model_path)
-
     # Initialize the TFLIteConverter
     converter = tf.lite.TFLiteConverter.from_saved_model(model_path)
 
-    converter.target_spec.supported_ops = [
-        tf.lite.OpsSet.TFLITE_BUILTINS, # Enable TensorFlow Lite ops.
-        tf.lite.OpsSet.SELECT_TF_OPS # Enable TensorFlow ops.
-    ]
     # Apply the quantization method
+
     if quantization_method == 'dynamic_range':
         # Set optimization to dynamic range optimization
         converter.optimizations = [tf.lite.Optimize.DEFAULT]
@@ -37,10 +31,18 @@ def convert_to_quantized_tflite(model_path, quantization_method):
         converter.representative_dataset = representative_dataset
     elif quantization_method == 'float16':
         # Set the optimization to float16 quantization
+        converter.optimizations = [tf.lite.Optimize.DEFAULT]
         converter.target_specs.supported_ops = [tf.float16]
     else:
         raise ValueError("Invalid quantization method. Supported methods: 'dynamic_range', 'full_integer', 'float16'")
 
+    converter.target_spec.supported_ops = [
+        tf.lite.OpsSet.TFLITE_BUILTINS_INT8, # Enable TensorFlow Lite ops.
+        tf.lite.OpsSet.TFLITE_BUILTINS # Enable TensorFlow ops.
+    ]
+    converter.experimental_new_converter = True
+    converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS,
+                                           tf.lite.OpsSet.SELECT_TF_OPS]
     # Convert the model
     tflite_quant_model = converter.convert()
 
@@ -55,7 +57,6 @@ def convert_to_quantized_tflite(model_path, quantization_method):
 # Define a a representative dataset function for full integer quantization
 def representative_dataset():
     for _ in range(100):
-        data = tf.random.normal((1, input_shape[0], input_shape[1], input_shape[2]))
-        yield [data]
-
+        data = np.random.rand(1, 224, 224, 3)
+        yield [data.astype(np.float32)]
     return
