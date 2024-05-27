@@ -3,7 +3,8 @@ from Datakit import convert, visualizer, create_labels, convert_to_tfrecord
 from webui.class_folders import Folders
 from od_model.train_model_tf2 import Config, run_model
 from od_model.graph import export_tflite_graph
-from od_model.quantization_utils import export_tflite_graph, is_quantized_model, convert_to_quantized_tflite
+from od_model.check_quantization import check_quantization, convert_to_quantized_tflite
+
 css_path = "./assets/styles.css"
 
 
@@ -14,12 +15,14 @@ def visualize():
     vis.graph()
     pass
 
+
 def graph():
     pipeline_config_path = config_file.get_dir()
     trained_checkpoint_dir = model_dir.get_dir()
     output_directory = "output"
     export_tflite_graph(pipeline_config_path, trained_checkpoint_dir, output_directory)
     pass
+
 
 def parse():
     train = training_data_directory.get_dir()
@@ -55,32 +58,19 @@ def train(num_steps):
     config = Config(pipeline_config_path=pipeline_config,
                     model_dir=model,
                     num_train_steps=num_steps,
-    )
+                    )
     run_model(config)
     print(config)
-
     return num_steps
     pass
 
-def handle_tflite_model(file_obj):
-    tflite_model_path = file_obj.name
-    if is_quantized_model(tflite_model_path):
-        return "The model is already quantized."
-    else:
-        # Specify paths for model export and conversion
-        pipeline_config_path = "D:/Machine Learning/Abaca Disease Detection/models/research/ssd_mobilenet_v2_fpnlite_640x640_coco17_tpu-8/pipeline.config"
-        trained_checkpoint_dir = "D:/Machine Learning/Abaca Disease Detection/models/research/ssd_mobilenet_v2_fpnlite_640x640_coco17_tpu-8/checkpoint/new20"
-        output_directory = "D:/Machine Learning/Abaca Disease Detection/models/research/tflite18"
 
-        # Export TFLite graph if not already done
-        export_tflite_graph(pipeline_config_path, trained_checkpoint_dir, output_directory)
+def check_model_quantization(model):
+    return check_quantization(model)
 
-        # Convert exported model to quantized TFLite
-        saved_model_dir = output_directory
-        output_tflite_model_path = "D:/Machine Learning/Abaca Disease Detection/models/research/quantized_model.tflite"
-        convert_to_quantized_tflite(saved_model_dir, output_tflite_model_path)
-
-        return "The model has been quantized and saved to " + output_tflite_model_path
+def quantize(quantization_method):
+    model = model_to_quantize_model_dir.get_dir()
+    return convert_to_quantized_tflite(model, quantization_method)
 
 # Create tabs for each function with buttons
 with gr.Blocks(title="Object Detection webui", css=css_path) as tabbed_interface:
@@ -136,10 +126,20 @@ with gr.Blocks(title="Object Detection webui", css=css_path) as tabbed_interface
         get_map = gr.Button(value="Calculate the mAP")
 
     with gr.Tab("Model"):
-        tflite_model = gr.File(label="Tflite Model")
-        result = gr.Textbox(label="Result")
-        tflite_model.upload(handle_tflite_model, inputs=tflite_model, outputs=result)
-        gr.Button("Placeholder")
+        check_model = gr.Interface(
+            fn=check_model_quantization,
+            inputs='file',
+            outputs=gr.Text(label="Model Quantization Status"),
+            title="Check Model Quantization"
+        )
+        with gr.Row():
+            with gr.Column():
+                model_to_quantize_model_dir = Folders(dir_label="Model dir", dir_hint='Model')
+                quantization_method = gr.Dropdown(label="Quantization Method", choices=["dynamic_range", "full_integer", "float16"],
+                                                  value="dynamic_range", interactive=True)
+            model_output = gr.File(label="Quantized Model")
+        quantize_model_button = gr.Button(value="Quantize Model")
+        quantize_model_button.click(fn=quantize, outputs=model_output, inputs=quantization_method)
 
 # Launch the tabbed interface
 tabbed_interface.launch()
